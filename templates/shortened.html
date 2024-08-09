@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="h-screen">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dreemy | Short URL</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <script>
+      function copyURL(ele, url) {
+        navigator.clipboard.writeText(url)
+        console.log(ele)
+        ele.textContent = "Copied!"
+        window.setTimeout(() => {
+          ele.textContent = "Copy"
+        }, 1000)
+      }
+    </script>
+  </head>
+  <body class="h-full pt-32 sm:pt-40">
+    <main class="flex flex-col items-center space-y-12 justify-center">
+      <h1 class="text-4xl font-bold"><a href="/">URL Shortener</a></h1>
+      <div class="flex flex-col items-center justify-center space-y-6">
+        <div class="flex items-center border-b border-teal-500 py-2">
+          <h3 class="text-3xl">{{ .URL }}<h3>
+        </div>
+        <button
+            class="flex-shrink-0 bg-teal-500 hover:bg-teal-700 border-teal-500 hover:border-teal-700 text-lg font-bold border-4 text-white py-1 px-4 rounded"
+            onclick="copyURL(this, {{ .URL }})">Copy
+        </button>
+      </div>
+    </main>
+  </body>
+</html>
