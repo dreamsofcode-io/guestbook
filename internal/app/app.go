@@ -54,6 +54,7 @@ func (a *App) Start(ctx context.Context) error {
 		close(done)
 	}()
 
+	a.logger.Info("Server listening", slog.String("addr", ":8080"))
 	select {
 	case <-done:
 		break
