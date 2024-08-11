@@ -38,7 +38,7 @@ func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 
 	migrationsURL, exists := os.LookupEnv("MIGRATIONS_PATH")
 	if !exists {
-		return nil, ErrMissingMigrationsPath
+		migrationsURL = "file://migrations"
 	}
 
 	migrator, err := migrate.New(migrationsURL, dbURL)
