@@ -70,6 +70,11 @@ USER appuser
 
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/
+COPY ./migrations ./migrations
+COPY ./templates ./templates
+COPY ./static ./static
+
+ENV MIGRATIONS_URL=file://migrations
 
 # Expose the port that the application listens on.
 EXPOSE 8080
