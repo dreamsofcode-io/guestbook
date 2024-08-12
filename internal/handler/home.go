@@ -54,8 +54,6 @@ func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(guests)
-
 	w.Header().Add("Content-Type", "text/html")
 	h.tmpl.ExecuteTemplate(w, "index.html", indexPage{
 		Guests: guests,
