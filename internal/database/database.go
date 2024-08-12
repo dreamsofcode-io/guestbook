@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/dreamsofcode-io/guestbook/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -18,15 +19,51 @@ var (
 	ErrMissingDatabaseURL    = errors.New("DATABASE_URL env missing")
 )
 
-func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
+func loadConfigFromURL() (*pgxpool.Config, error) {
 	dbURL, ok := os.LookupEnv("DATABASE_URL")
 	if !ok {
-		return nil, fmt.Errorf("Must said DATABASE_URL env var")
+		return nil, fmt.Errorf("Must set DATABASE_URL env var")
 	}
 
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
+	}
+
+	return config, nil
+}
+
+func loadConfig() (*pgxpool.Config, error) {
+	cfg, err := config.NewDatabase()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "missing:", err)
+		return loadConfigFromURL()
+	}
+
+	return pgxpool.ParseConfig(fmt.Sprintf(
+		"user=%s password=%s host=%s port=%d dbname=%s sslmode=%s",
+		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode,
+	))
+}
+
+func dbURL() (string, error) {
+	cfg, err := config.NewDatabase()
+	if err != nil {
+		dbURL, ok := os.LookupEnv("DATABASE_URL")
+		if !ok {
+			return "", fmt.Errorf("Must set DATABASE_URL env var")
+		}
+
+		return dbURL, nil
+	}
+
+	return cfg.URL(), nil
+}
+
+func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
+	config, err := loadConfig()
+	if err != nil {
+		return nil, err
 	}
 
 	conn, err := pgxpool.ConnectConfig(ctx, config)
@@ -41,7 +78,12 @@ func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 		migrationsURL = "file://migrations"
 	}
 
-	migrator, err := migrate.New(migrationsURL, dbURL)
+	url, err := dbURL()
+	if err != nil {
+		return nil, err
+	}
+
+	migrator, err := migrate.New(migrationsURL, url)
 	if err != nil {
 		return nil, fmt.Errorf("migrate new: %s", err)
 	}
