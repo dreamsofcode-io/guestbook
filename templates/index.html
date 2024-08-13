@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Guest Book</title>
+    <title>Guest Book | Updated</title>
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body class="min-h-screen bg-gray-950 font-mono">
@@ -14,7 +14,7 @@
             <div class="px-4 sm:px-6 lg:px-8">
               <div class="sm:flex sm:items-center">
                 <div class="sm:flex-auto">
-                  <h1 class="text-4xl font-semibold leading-6 text-white">Guest Book</h1>
+                  <h1 class="text-4xl font-semibold leading-6 text-white">Guest Book | Updated</h1>
                 </div>
               </div>
               <div class="mt-10">
@@ -44,8 +44,8 @@
                       <tbody class="divide-y divide-gray-800">
                         {{ range .Guests }}
                         <tr>
-                          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ .Message }}</td>
-                          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ .CreatedAt.Format "02 Jan 06 15:04 MST"  }}</td>
+                          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-300 sm:pl-0">{{ .Message }}</td>
+                          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ .CreatedAt.Format "02 Jan 06 15:04 MST"  }}</td>
                         </tr>
                         {{ end }}
                       </tbody>
