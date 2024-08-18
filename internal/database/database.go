@@ -36,7 +36,6 @@ func loadConfigFromURL() (*pgxpool.Config, error) {
 func loadConfig() (*pgxpool.Config, error) {
 	cfg, err := config.NewDatabase()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "missing:", err)
 		return loadConfigFromURL()
 	}
 
