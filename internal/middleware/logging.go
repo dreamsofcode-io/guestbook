@@ -33,6 +33,7 @@ func Logging(logger *slog.Logger, next http.Handler) http.Handler {
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Any("duration", time.Since(start)),
+			slog.String("xff", r.Header.Get("X-Forwarded-For")),
 		)
 	})
 }

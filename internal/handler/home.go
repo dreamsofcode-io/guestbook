@@ -6,11 +6,14 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 
 	goaway "github.com/TwiN/go-away"
 	"github.com/dreamsofcode-io/guestbook/internal/guest"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"mvdan.cc/xurls/v2"
 )
 
 type Guestbook struct {
@@ -40,7 +43,7 @@ type errorPage struct {
 }
 
 func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
-	guests, err := h.repo.FindAll(r.Context(), 20)
+	guests, err := h.repo.FindAll(r.Context(), 200)
 	if err != nil {
 		h.logger.Error("failed to find guests", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -60,6 +63,9 @@ func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
 		Total:  count,
 	})
 }
+
+var linkRegex = xurls.Relaxed()
+var newlineRegex = regexp.MustCompile(`\r?\n`)
 
 func (h *Guestbook) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -85,16 +91,50 @@ func (h *Guestbook) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	addr := r.Header.Get("X-Forwarded-For")
+
+	xffSplits := strings.Split(addr, ",")
+	xffStr := ""
+	if len(xffSplits) > 0 {
+		xffStr = xffSplits[len(xffSplits)-1]
+	}
+
 	splits := strings.Split(r.RemoteAddr, ":")
 	ipStr := strings.Trim(strings.Join(splits[:len(splits)-1], ":"), "[]")
+
 	ip := net.ParseIP(ipStr)
+
+	if xffStr != "" {
+		ip = net.ParseIP(xffStr)
+	}
+
+	last, err := h.repo.LastMessage(r.Context(), ip)
+	if err == nil {
+		since := time.Since(last.CreatedAt)
+		if since < time.Minute {
+			time.Sleep(time.Minute)
+			return
+		}
+	}
+
+	message = newlineRegex.ReplaceAllString(message, " ")
 
 	if goaway.IsProfane(message) {
 		w.WriteHeader(http.StatusBadRequest)
 		h.tmpl.ExecuteTemplate(w, "error.html", errorPage{
 			ErrorMessage: fmt.Sprintf(
 				"Please don't use profanity. Your IP has been tracked %s",
-				ipStr,
+				ip.String(),
+			),
+		})
+		return
+	}
+
+	if linkRegex.MatchString(message) {
+		w.WriteHeader(http.StatusBadRequest)
+		h.tmpl.ExecuteTemplate(w, "error.html", errorPage{
+			ErrorMessage: fmt.Sprintf(
+				"No links allowed",
 			),
 		})
 		return

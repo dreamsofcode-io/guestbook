@@ -41,8 +41,10 @@ func (a *App) Start(ctx context.Context) error {
 	a.loadRoutes()
 
 	server := http.Server{
-		Addr:    ":8080",
-		Handler: middleware.Logging(a.logger, a.router),
+		Addr: ":8080",
+		Handler: middleware.Logging(
+			a.logger, a.router,
+		),
 	}
 
 	done := make(chan struct{})

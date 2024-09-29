@@ -3,6 +3,7 @@ package guest
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -34,9 +35,30 @@ func (r *Repo) Insert(ctx context.Context, guest Guest) error {
 	return nil
 }
 
+var ipSQL = `
+SELECT id, message, created_at, ip
+FROM guest
+WHERE ip = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (r *Repo) LastMessage(ctx context.Context, ip net.IP) (Guest, error) {
+	var guest Guest
+	err := r.db.QueryRow(ctx, selectSQL, ip).Scan(
+		&guest.ID, &guest.Message, &guest.CreatedAt, &guest.IP,
+	)
+	if err != nil {
+		return guest, fmt.Errorf("failed to get last message")
+	}
+
+	return guest, nil
+}
+
 var selectSQL = `
 SELECT id, message, created_at, ip
 FROM guest
+WHERE (message NOT LIKE '%//haze' OR created_at > '2024-09-06T20:40:00Z')
 ORDER BY created_at DESC
 LIMIT $1
 `
