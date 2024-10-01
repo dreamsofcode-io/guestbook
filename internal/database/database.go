@@ -7,11 +7,12 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dreamsofcode-io/guestbook/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/dreamsofcode-io/guestbook/internal/config"
 )
 
 var (
@@ -65,7 +66,7 @@ func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	conn, err := pgxpool.ConnectConfig(ctx, config)
+	conn, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to database: %w", err)
 	}

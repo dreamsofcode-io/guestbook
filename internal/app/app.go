@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/dreamsofcode-io/guestbook/internal/database"
 	"github.com/dreamsofcode-io/guestbook/internal/middleware"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type App struct {
