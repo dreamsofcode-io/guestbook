@@ -1,6 +1,8 @@
 module github.com/dreamsofcode-io/guestbook
 
-go 1.22.3
+go 1.23.0
+
+toolchain go1.23.2
 
 require (
 	github.com/TwiN/go-away v1.6.13
@@ -28,6 +30,7 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
+	github.com/x-way/crawlerdetect v0.2.24 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect

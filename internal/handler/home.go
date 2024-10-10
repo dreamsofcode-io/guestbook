@@ -10,6 +10,7 @@ import (
 
 	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/x-way/crawlerdetect"
 
 	"github.com/dreamsofcode-io/guestbook/internal/guest"
 	"github.com/dreamsofcode-io/guestbook/internal/repository"
@@ -41,7 +42,7 @@ type errorPage struct {
 }
 
 func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
-	guests, err := h.repo.FindAll(r.Context(), 20)
+	guests, err := h.repo.FindAll(r.Context(), 200)
 	if err != nil {
 		h.logger.Error("failed to find guests", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -63,6 +64,12 @@ func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Guestbook) Create(w http.ResponseWriter, r *http.Request) {
+	if crawlerdetect.IsCrawler(r.Header.Get("User-Agent")) {
+		h.logger.Info("bot detected")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		h.logger.Error("failed to parse form", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
