@@ -10,7 +10,7 @@ import (
 
 	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/x-way/crawlerdetect"
+	// "github.com/x-way/crawlerdetect"
 
 	"github.com/dreamsofcode-io/guestbook/internal/guest"
 	"github.com/dreamsofcode-io/guestbook/internal/repository"
@@ -64,12 +64,11 @@ func (h *Guestbook) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Guestbook) Create(w http.ResponseWriter, r *http.Request) {
-	if crawlerdetect.IsCrawler(r.Header.Get("User-Agent")) {
-		h.logger.Info("bot detected")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
+	// if crawlerdetect.IsCrawler(r.Header.Get("User-Agent")) {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
+	//
 	if err := r.ParseForm(); err != nil {
 		h.logger.Error("failed to parse form", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)

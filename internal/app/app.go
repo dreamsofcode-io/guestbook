@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/dreamsofcode-io/guestbook/internal/database"
 	"github.com/dreamsofcode-io/guestbook/internal/middleware"
@@ -18,14 +21,23 @@ type App struct {
 	logger *slog.Logger
 	router *http.ServeMux
 	db     *pgxpool.Pool
+	rdb    *redis.Client
 }
 
 func New(logger *slog.Logger) *App {
 	router := http.NewServeMux()
 
+	redisAddr, exists := os.LookupEnv("REDIS_ADDR")
+	if !exists {
+		redisAddr = "localhost:6379"
+	}
+
 	app := &App{
 		logger: logger,
 		router: router,
+		rdb: redis.NewClient(&redis.Options{
+			Addr: redisAddr,
+		}),
 	}
 
 	return app
@@ -39,11 +51,13 @@ func (a *App) Start(ctx context.Context) error {
 
 	a.db = db
 
-	a.loadRoutes()
+	tmpl := template.Must(template.New("").ParseGlob("./templates/*"))
+
+	a.loadRoutes(tmpl)
 
 	server := http.Server{
-		Addr:    ":8080",
-		Handler: middleware.Logging(a.logger, a.router),
+		Addr:    "127.0.0.1:8080",
+		Handler: middleware.Logging(a.logger, middleware.HandleBadCode(tmpl, a.router)),
 	}
 
 	done := make(chan struct{})
