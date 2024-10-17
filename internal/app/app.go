@@ -56,7 +56,7 @@ func (a *App) Start(ctx context.Context) error {
 	a.loadRoutes(tmpl)
 
 	server := http.Server{
-		Addr:    "127.0.0.1:8080",
+		Addr:    ":8080",
 		Handler: middleware.Logging(a.logger, middleware.HandleBadCode(tmpl, a.router)),
 	}
 
