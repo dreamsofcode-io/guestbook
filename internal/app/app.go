@@ -24,9 +24,10 @@ type App struct {
 	db         *pgxpool.Pool
 	rdb        *redis.Client
 	migrations fs.FS
+	templates  fs.FS
 }
 
-func New(logger *slog.Logger, migrations fs.FS) *App {
+func New(logger *slog.Logger, migrations fs.FS, templates fs.FS) *App {
 	router := http.NewServeMux()
 
 	redisAddr, exists := os.LookupEnv("REDIS_ADDR")
@@ -41,6 +42,7 @@ func New(logger *slog.Logger, migrations fs.FS) *App {
 			Addr: redisAddr,
 		}),
 		migrations: migrations,
+		templates:  templates,
 	}
 
 	return app
@@ -54,7 +56,7 @@ func (a *App) Start(ctx context.Context) error {
 
 	a.db = db
 
-	tmpl := template.Must(template.New("").ParseGlob("./templates/*"))
+	tmpl := template.Must(template.New("").ParseFS(a.templates, "templates/*"))
 
 	a.loadRoutes(tmpl)
 

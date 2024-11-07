@@ -14,6 +14,9 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
+//go:embed templates/*.html
+var templates embed.FS
+
 func main() {
 	godotenv.Load()
 
@@ -21,7 +24,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	a := app.New(logger, migrations)
+	a := app.New(logger, migrations, templates)
 
 	if err := a.Start(ctx); err != nil {
 		logger.Error("failed to start server", slog.Any("error", err))
