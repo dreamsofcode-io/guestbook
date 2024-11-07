@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/dreamsofcode-io/guestbook/internal/config"
@@ -60,7 +61,7 @@ func dbURL() (string, error) {
 	return cfg.URL(), nil
 }
 
-func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
+func Connect(ctx context.Context, logger *slog.Logger, migrations fs.FS) (*pgxpool.Pool, error) {
 	config, err := loadConfig()
 	if err != nil {
 		return nil, err
@@ -73,17 +74,17 @@ func Connect(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 
 	logger.Debug("Running migrations")
 
-	migrationsURL, exists := os.LookupEnv("MIGRATIONS_PATH")
-	if !exists {
-		migrationsURL = "file://migrations"
-	}
-
 	url, err := dbURL()
 	if err != nil {
 		return nil, err
 	}
 
-	migrator, err := migrate.New(migrationsURL, url)
+	source, err := iofs.New(migrations, "migrations")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create source: %w", err)
+	}
+
+	migrator, err := migrate.NewWithSourceInstance("iofs", source, url)
 	if err != nil {
 		return nil, fmt.Errorf("migrate new: %s", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -18,13 +19,14 @@ import (
 )
 
 type App struct {
-	logger *slog.Logger
-	router *http.ServeMux
-	db     *pgxpool.Pool
-	rdb    *redis.Client
+	logger     *slog.Logger
+	router     *http.ServeMux
+	db         *pgxpool.Pool
+	rdb        *redis.Client
+	migrations fs.FS
 }
 
-func New(logger *slog.Logger) *App {
+func New(logger *slog.Logger, migrations fs.FS) *App {
 	router := http.NewServeMux()
 
 	redisAddr, exists := os.LookupEnv("REDIS_ADDR")
@@ -38,13 +40,14 @@ func New(logger *slog.Logger) *App {
 		rdb: redis.NewClient(&redis.Options{
 			Addr: redisAddr,
 		}),
+		migrations: migrations,
 	}
 
 	return app
 }
 
 func (a *App) Start(ctx context.Context) error {
-	db, err := database.Connect(ctx, a.logger)
+	db, err := database.Connect(ctx, a.logger, a.migrations)
 	if err != nil {
 		return fmt.Errorf("failed to connect to db: %w", err)
 	}
