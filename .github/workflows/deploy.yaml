@@ -18,7 +18,9 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
+    - name: Copy over the docker compose file
+      run: |
+        scp -o StrictHostKeyChecking=no compose.prod.yaml deploytest@zenful.cloud:guestbook/compose.yaml
     - name: Deploy code via SSH
       run: |
-        DOCKER_HOST="ssh://deploytest@zenful.cloud" docker-compose up -d
-        #ssh -o StrictHostKeyChecking=no deploytest@zenful.cloud "cd guestbook && docker compose up -d"
+        ssh -o StrictHostKeyChecking=no deploytest@zenful.cloud "cd guestbook && docker compose up -d"
