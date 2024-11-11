@@ -18,6 +18,12 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
+    - name: Set up Docker Compose
+      run: |
+        # Install Docker Compose
+        curl -L "https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+
     - name: Copy over the docker compose file
       run: |
         scp -o StrictHostKeyChecking=no compose.prod.yaml deploytest@zenful.cloud:guestbook/compose.yaml
