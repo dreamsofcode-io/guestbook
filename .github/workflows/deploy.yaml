@@ -20,4 +20,5 @@ jobs:
 
     - name: Deploy code via SSH
       run: |
-        ssh deploytest@zenful.cloud "cd /home/elliott/guestbook && docker compose up -d"
+        DOCKER_HOST="ssh://deploytest@zenful.cloud" docker-compose up -d
+        #ssh -o StrictHostKeyChecking=no deploytest@zenful.cloud "cd guestbook && docker compose up -d"
