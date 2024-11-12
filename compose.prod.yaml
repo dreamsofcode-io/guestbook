@@ -1,13 +1,4 @@
 services:
-  watchtower:
-    image: containrrr/watchtower
-    command:
-      - "--label-enable"
-      - "--interval"
-      - "30"
-      - "--rolling-restart"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
   reverse-proxy:
     image: traefik:v3.1
     command:
@@ -27,7 +18,7 @@ services:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
   guestbook:
-    image: ghcr.io/dreamsofcode-io/guestbook:prod
+    image: ghcr.io/dreamsofcode-io/guestbook:${GIT_COMMIT_HASH:-prod}
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.guestbook-ratelimit.ratelimit.average=20"
@@ -75,7 +66,6 @@ services:
     environment:
       - POSTGRES_DB=guestbook
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-      #- POSTGRES_PASSWORD=${DB_PASSWORD}
     expose:
       - 5432
     healthcheck:
