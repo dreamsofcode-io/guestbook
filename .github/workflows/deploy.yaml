@@ -28,15 +28,11 @@ jobs:
         curl -L "https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         chmod +x /usr/local/bin/docker-compose
 
+    - name: Copy over password
+      run: |
+        ssh deploytest@zenful.cloud "echo ${{ secrets.DB_PASSWORD }}" > /home/deploytest/db-password.txt
+
     - name: Run Docker Compose
       run: |
-        export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         export DOCKER_HOST=ssh://deploytest@zenful.cloud
         docker-compose -f ./compose.prod.yaml up -d
-
-    # - name: Copy over the docker compose file
-    #   run: |
-    #     scp -o StrictHostKeyChecking=no compose.prod.yaml deploytest@zenful.cloud:guestbook/compose.yaml
-    # - name: Deploy code via SSH
-    #   run: |
-    #     ssh -o StrictHostKeyChecking=no deploytest@zenful.cloud "cd guestbook && docker compose up -d"

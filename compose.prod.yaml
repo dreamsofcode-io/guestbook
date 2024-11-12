@@ -48,9 +48,11 @@ services:
       - "traefik.http.routers.proxy.tls.certresolver=myresolver"
         # Enable watchtower
       - "com.centurylinklabs.watchtower.enable=true"
+    secrets:
+      - db-password
     environment:
       - POSTGRES_HOST=db
-      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
       - POSTGRES_USER=postgres
       - POSTGRES_DB=guestbook
       - POSTGRES_PORT=5432
@@ -68,10 +70,12 @@ services:
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
+    secrets:
+      - db-password
     environment:
       - POSTGRES_DB=guestbook
-      #- POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      #- POSTGRES_PASSWORD=${DB_PASSWORD}
     expose:
       - 5432
     healthcheck:
@@ -84,4 +88,4 @@ volumes:
   letsencrypt:
 secrets:
   db-password:
-    environment: DB_PASSWORD
+    file: ${DB_PASSWORD_PATH:-./db-password.txt}
