@@ -30,7 +30,7 @@ jobs:
 
     - name: Copy over password
       run: |
-        ssh deploytest@zenful.cloud "echo ${{ secrets.DB_PASSWORD }}" > /home/deploytest/db-password.txt
+        ssh deploytest@zenful.cloud "echo ${{ secrets.DB_PASSWORD }} > /home/deploytest/db-password.txt"
 
     - name: Run Docker Compose
       run: |
