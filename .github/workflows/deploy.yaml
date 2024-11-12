@@ -34,5 +34,6 @@ jobs:
 
     - name: Run Docker Compose
       run: |
+        export DB_PASSWORD_PATH="/home/deploytest/db-password.txt"
         export DOCKER_HOST=ssh://deploytest@zenful.cloud
         docker-compose -f ./compose.prod.yaml up -d
