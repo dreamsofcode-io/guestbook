@@ -60,7 +60,8 @@ services:
       - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=guestbook
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      #- POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     expose:
       - 5432
     healthcheck:
@@ -73,4 +74,4 @@ volumes:
   letsencrypt:
 secrets:
   db-password:
-    file: db/password.txt
+    environment: DB_PASSWORD

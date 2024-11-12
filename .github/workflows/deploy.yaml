@@ -30,7 +30,7 @@ jobs:
 
     - name: Run Docker Compose
       run: |
-        export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        echo DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         DOCKER_HOST=ssh://deploytest@zenful.cloud docker-compose -f ./compose.prod.yaml up -d
 
     # - name: Copy over the docker compose file
