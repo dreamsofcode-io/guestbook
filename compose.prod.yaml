@@ -23,6 +23,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.middlewares.guestbook-ratelimit.ratelimit.average=20"
       - "traefik.http.routers.guestbook.rule=Host(`zenful.cloud`) && !Method(`POST`)"
+      - "traefik.http.services.guestbook.loadbalancer.server.port=8080"
       - "traefik.http.routers.guestbook.entrypoints=websecure"
       - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
       - "traefik.http.routers.guestbook.middlewares=guestbook-ratelimit"
@@ -53,10 +54,9 @@ services:
       replicas: 3
     restart: always
     depends_on:
-      db:
-        condition: service_healthy
+      - db
   db:
-    image: postgres
+    image: postgres:16
     restart: always
     user: postgres
     volumes:
@@ -78,4 +78,4 @@ volumes:
   letsencrypt:
 secrets:
   db-password:
-    file: ${DB_PASSWORD_PATH:-./db-password.txt}
+    external: true
