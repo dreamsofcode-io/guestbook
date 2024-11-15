@@ -44,8 +44,6 @@ services:
       - "traefik.http.routers.proxy.rule=Host(`proxy.dreamsofcode.io`)"
       - "traefik.http.routers.proxy.entrypoints=websecure"
       - "traefik.http.routers.proxy.tls.certresolver=myresolver"
-        # Enable watchtower
-      - "com.centurylinklabs.watchtower.enable=true"
     secrets:
       - db-password
     environment:
