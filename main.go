@@ -7,8 +7,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/dreamsofcode-io/guestbook/internal/app"
 	"github.com/joho/godotenv"
+
+	"github.com/dreamsofcode-io/guestbook/internal/app"
 )
 
 //go:embed migrations/*.sql
