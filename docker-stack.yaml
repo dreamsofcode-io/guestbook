@@ -1,0 +1,85 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=elliott@zenful.cloud"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 80
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+  guestbook:
+    image: ghcr.io/dreamsofcode-io/guestbook:${GIT_COMMIT_HASH:-prod}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.guestbook-ratelimit.ratelimit.average=20"
+      - "traefik.http.routers.guestbook.rule=Host(`zenful.cloud`) && !Method(`POST`)"
+      - "traefik.http.services.guestbook.loadbalancer.server.port=8080"
+      - "traefik.http.routers.guestbook.entrypoints=websecure"
+      - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
+      - "traefik.http.routers.guestbook.middlewares=guestbook-ratelimit"
+      # Define separate router for POST methods
+      - "traefik.http.middlewares.guestbook-ratelimit-post.ratelimit.average=1"
+      - "traefik.http.middlewares.guestbook-ratelimit-post.ratelimit.period=1m"
+      - "traefik.http.routers.guestbook-post.rule=Host(`zenful.cloud`) && Method(`POST`)"
+      - "traefik.http.routers.guestbook-post.middlewares=guestbook-ratelimit-post"
+      - "traefik.http.routers.guestbook-post.entrypoints=websecure"
+      - "traefik.http.routers.guestbook-post.tls.certresolver=myresolver"
+      # Proxy
+      - "traefik.http.routers.proxy.rule=Host(`proxy.dreamsofcode.io`)"
+      - "traefik.http.routers.proxy.entrypoints=websecure"
+      - "traefik.http.routers.proxy.tls.certresolver=myresolver"
+    secrets:
+      - db-password
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=guestbook
+      - POSTGRES_PORT=5432
+      - POSTGRES_SSLMODE=disable
+    deploy:
+      mode: replicated
+      replicas: 3
+    restart: always
+    depends_on:
+      - db
+  db:
+    image: postgres:16
+    restart: always
+    user: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    secrets:
+      - db-password
+    environment:
+      - POSTGRES_DB=guestbook
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:
+  letsencrypt:
+secrets:
+  db-password:
+    external: true
