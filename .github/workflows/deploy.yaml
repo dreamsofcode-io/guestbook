@@ -80,7 +80,7 @@ jobs:
       uses: cssnr/stack-deploy-action@v1
       with:
         name: 'guestbook'
-        file: 'stack.yaml'
+        file: 'docker-stack.yaml'
         host: zenful.cloud
         user: deploytest
         ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
