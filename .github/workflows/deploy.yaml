@@ -73,29 +73,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3
+    - name: create env file
+      run: |
+        echo "GIT_COMMIT_HASH=${{ github.sha }}" >> env
+    - name: 'Docker Stack Deploy'
+      uses: cssnr/stack-deploy-action@v1
       with:
-        ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
-
-    - name: Add host
-      run: |
-        ssh-keyscan zenful.cloud > ~/.ssh/known_hosts
-
-    - name: Set up Docker Compose
-      run: |
-        # Install Docker Compose
-        curl -L "https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        chmod +x /usr/local/bin/docker-compose
-
-    - name: Copy over password
-      run: |
-        ssh deploytest@zenful.cloud "echo ${{ secrets.DB_PASSWORD }} > /home/deploytest/db-password.txt"
-
-    - name: Run Docker Compose
-      run: |
-        export GIT_COMMIT_HASH=${{ needs.commit-hash.outputs.commit_hash }}
-        export DB_PASSWORD_PATH="/home/deploytest/db-password.txt"
-        export DOCKER_HOST=ssh://deploytest@zenful.cloud
-        docker-compose -f ./compose.prod.yaml up -d
+        name: 'guestbook'
+        file: 'stack.yaml'
+        host: zenful.cloud
+        user: deploy
+        ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+        env_file: './env'
